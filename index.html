@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шахматы</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../cur/chess/chess_board.css" />
+</head>
+<body>
+    <div id="interface">
+        <h1>Шахматы</h1>
+        <button id="startBtn">Начать новую игру</button>
+    </div>
+    <div id="board-container" style="display: none;">
+        <div id="board"></div>
+    </div>
+
+    <script src="../cur/chess/chess_board.js"></script>
+    
+    <script>
+        let board;
+
+        // Проверка загрузки DOM
+        $(document).ready(function() {
+
+            // Функция для обработки хода
+            function onDrop(source, target) {
+
+            }
+
+            function onSnapEnd() {
+                console.log('Доска обновлена');
+                board.position(board.fen());
+            }
+
+            // Обработчик для кнопки "Начать новую игру"
+            $('#startBtn').on('click', function() {
+                console.log('Кнопка "Начать новую игру" нажата');
+
+   
+                $('#interface').hide();
+                
+                $('#board-container').show();
+
+                // Инициализация шахматной доски
+                if (typeof ChessBoard !== 'undefined') {
+                    board = ChessBoard('board', {
+                        draggable: true,
+                        position: 'start',
+                        onDrop: onDrop,
+                        onSnapEnd: onSnapEnd
+                    });
+                } 
+
+            });
+        });
+    </script>
+</body>
+</html>
