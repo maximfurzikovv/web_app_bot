@@ -3,59 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Шахматы</title>
+    <title>Игра в шахматы</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="chessboard-1.0.0.js"></script>
+
+    <!-- Подключение стилей -->
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="chess_board.css" />
+    <link rel="stylesheet" href="chessboard-1.0.0.css"/>
 </head>
 <body>
-    <div id="interface">
-        <h1>Шахматы</h1>
-        <button id="startBtn">Начать новую игру</button>
-    </div>
-    <div id="board-container" style="display: none;">
+
+<div id="interface">
+    <h1>Игра в шахматы</h1>
+    <button id="startBtn">Начать новую игру</button>
+</div>
+<div id="game-container">
+    <!-- Контейнер для доски -->
+    <div id="board-container">
         <div id="board"></div>
     </div>
 
-    <script src="chess_board.js"></script>
-    
-    <script>
-        let board;
+    <!-- Контейнер для истории ходов -->
+    <div id="history-container">
+        <h2>История ходов</h2>
+        <ul id="move-history"></ul>
+    </div>
+</div>
+<!-- Подключение локального файла chessboard.js -->
+<script src="chessboard-1.0.0.js"></script>
+<div id="status"></div>
 
-        // Проверка загрузки DOM
-        $(document).ready(function() {
-
-            // Функция для обработки хода
-            function onDrop(source, target) {
-
-            }
-
-            function onSnapEnd() {
-                console.log('Доска обновлена');
-                board.position(board.fen());
-            }
-
-            // Обработчик для кнопки "Начать новую игру"
-            $('#startBtn').on('click', function() {
-                console.log('Кнопка "Начать новую игру" нажата');
-
-   
-                $('#interface').hide();
-                
-                $('#board-container').show();
-
-                // Инициализация шахматной доски
-                if (typeof ChessBoard !== 'undefined') {
-                    board = ChessBoard('board', {
-                        draggable: true,
-                        position: 'start',
-                        onDrop: onDrop,
-                        onSnapEnd: onSnapEnd
-                    });
-                } 
-
-            });
-        });
-    </script>
+<script src="gameLogic.js" ></script>
 </body>
 </html>
