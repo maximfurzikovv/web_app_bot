@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра в шахматы</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="chessboard-1.0.0.js"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chess.css">
+
+</head>
+<body>
+
+<div id="interface">
+    <h1>Игра в шахматы</h1>
+    <button id="startBtn">Начать новую игру</button>
+</div>
+<div id="game-container">
+    <!-- Контейнер для доски -->
+    <div id="board-container">
+        <div id="board"></div>
+    </div>
+
+    <!-- Контейнер для истории ходов -->
+    <div id="history-container">
+        <h2>История ходов</h2>
+        <ul id="move-history"></ul>
+    </div>
+</div>
+
+<div id="status"></div>
+<script>
+    const socket = io();
+
+    // Присоединение к игре
+    socket.emit('joinGame', 'game1');
+
+    // Обработка обновления состояния доски
+    socket.on('updateBoard', function (fen) {
+        console.log('Получено обновление доски:', fen); // Вывод в консоль для отладки
+        game.load(fen); // Обновляем состояние игры в chess.js
+        board.position(fen); // Обновляем отображение доски с использованием chessboard.js
+    });
+
+    // Отправка хода
+    function sendMove(move) {
+        // Отправка хода на сервер
+        socket.emit('move', {
+            gameId: 'game1', // Укажите ваш gameId
+            move: move
+        });
+    }
+
+</script>
+
+
+<script src="gameLogic.js"></script>
+</body>
+</html>
