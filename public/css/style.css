@@ -1,0 +1,126 @@
+/* Общие стили */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f9f9f9;
+    margin: 0;
+}
+
+/* Заголовок */
+h1 {
+    font-size: 36px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Кнопки */
+button {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Кнопка "Очистить доску" */
+#clearBtn {
+    background-color: #dc3545;
+}
+
+#clearBtn:hover {
+    background-color: #c82333;
+}
+
+/* Контейнер с доской */
+#board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Шахматная доска */
+#board {
+    width: 400px;
+    margin-top: 20px;
+}
+
+#game-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+
+/* Контейнер для доски */
+#board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Контейнер для истории ходов */
+#history-container {
+    width: 200px;
+    padding-left: 20px;
+    border-left: 2px solid #ccc;
+    margin-left: 20px;
+    display: none; /* Скрываем историю до старта игры */
+}
+
+#move-history {
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    list-style-type: none;
+    padding: 0;
+}
+
+#move-history li {
+    padding: 5px 0;
+}
+
+.move {
+    font-weight: bold;
+}
+
+/* Стиль для хода */
+.white-move {
+    color: #00aaff;
+}
+
+.black-move {
+    color: #ff5733;
+}
+
+.capture {
+    color: red;
+    font-weight: normal;
+}
+
+/* Стиль для блока status */
+#status {
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #f0f0f0;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    text-align: center;
+    color: #333;
+    display: none;
+}
