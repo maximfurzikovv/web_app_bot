@@ -1,53 +1,147 @@
+const {Sequelize, DataTypes} = require('sequelize');
 const express = require('express');
 const http = require('http');
 const socket = require('socket.io');
 const path = require('path');
-const Chess = require('chess.js').Chess;  // Подключение chess.js
+const sqlite3 = require('sqlite3').verbose();
+const Chess = require('chess.js').Chess;
 
 const app = express();
 const server = http.createServer(app);
 const io = socket(server);
 
-const PORT = process.env.PORT || 3000; // Укажите ваш порт или используйте порт по умолчанию
+const PORT = process.env.PORT || 5000;
 
-// Словарь для хранения активных игр
-let games = {};
+// Подключение к базе данных
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: 'chess_game.db',
+    logging: console.log,
+});
+
+
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/webapp?roomCode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+function generateGameCode() {
+    const randomNum = Math.floor(Math.random() * 1000000); // Генерируем случайное число
+    return `${randomNum}`;
+}
+
+const GameState = sequelize.define('game_state', {
+    game_code: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    board_state: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    game_in_progress: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    id_room_code: {
+        type: DataTypes.STRING,
+        references: {
+            model: 'rooms',
+            key: 'room_code'
+        },
+        allowNull: false
+    }
+}, {
+    tableName: 'game_state',
+    timestamps: false,
+});
+
+// Функция для сохранения состояния игры в базу данных
+async function saveGameState(gameCode, boardState, roomCode) {
+    try {
+        if (!gameCode || !boardState || !roomCode) {
+            console.error('Неверные данные для сохранения состояния игры.');
+            return;
+        }
+
+        await GameState.upsert({
+            game_code: gameCode,
+            board_state: boardState,
+            game_in_progress: true,
+            id_room_code: roomCode
+        });
+        console.log(`Состояние игры для комнаты ${gameCode} успешно сохранено: ${boardState}`);
+    } catch (error) {
+        console.error("Ошибка при сохранении состояния игры:", error.message);
+    }
+}
+
+
+// Функция для получения состояния игры из базы данных
+async function getGameState(roomCode) {
+    try {
+        const roomCodeStr = String(roomCode);
+        const game = await GameState.findOne({where: {id_room_code: roomCodeStr}});
+        if (game) {
+            console.log(`Состояние игры для комнаты ${roomCode} успешно получено: ${game.board_state}`);
+            return game.board_state;
+        }
+        console.log(`Комната с кодом ${roomCode} не найдена.`);
+        return null;
+    } catch (error) {
+        console.error("Ошибка при извлечении состояния игры:", error);
+        return null;
+    }
+}
+
+const games = {};
+
 io.on('connection', (socket) => {
     console.log('Новый игрок подключен:', socket.id);
 
     // Обработка события подключения к игре
-    socket.on('joinGame', (gameId) => {
+    socket.on('joinGame', async (gameId) => {
         if (!games[gameId]) {
+            const gameCode = generateGameCode();
             games[gameId] = {
                 players: [],
-                game: new Chess(),  // Создаем новый объект игры для каждого gameId
+                game: new Chess(),
                 boardState: null,
-                playerColors: {}// Начальная позиция
+                playerColors: {},
+                gameCode: gameCode
             };
-            games[gameId].game.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+            // Получение информации о комнате из базы данных
+            const boardState = await getGameState(gameId);
+            if (boardState) {
+                console.log(`Комната с кодом ${gameId} найдена. Состояние доски загружено.`);
+                const game = games[gameId] || {game: new Chess()};
+                game.boardState = boardState;
+                game.game.load(game.boardState);
+
+                io.to(gameId).emit('updateBoard', game.game.fen());
+            } else {
+                console.log(`Комната с кодом ${gameId} не найдена. Создаем новую игру.`);
+                const newGame = new Chess();
+                games[gameId] = {
+                    players: [],
+                    game: new Chess(),
+                    boardState: null,
+                    playerColors: {},
+                    gameCode: gameCode
+                };
+
+                io.to(gameCode).emit('updateBoard', newGame.fen());
+            }
         }
- // Устанавливаем очередь хода черных, когда создается новая игра
-
-
-        //
-        // games[gameId].players.push(socket.id);
-        // socket.join(gameId);
-        //
-        // // Отправка данных игрокам о текущем состоянии игры
-        // // io.to(gameId).emit('updateBoard', games[gameId].boardState);
-        // io.to(gameId).emit('updateBoard', games[gameId].game.fen());
-        // console.log(`Игрок ${socket.id} присоединился к игре ${gameId}`);
-        // Добавляем игрока в игру
+        const currentGame = games[gameId];
         const game = games[gameId];
 
-        // Проверяем, если игрок уже присоединился, избегаем дублирования
         if (game.players.includes(socket.id)) {
             console.log('Этот игрок уже присоединился к игре.');
             return;
         }
 
-        // Присваиваем игроку цвет в зависимости от порядка подключения
         if (game.players.length === 0) {
             game.playerColors[socket.id] = 'w';
             game.players.push(socket.id);
@@ -63,66 +157,45 @@ io.on('connection', (socket) => {
         }
 
         io.to(gameId).emit('updateBoard', game.game.fen());
-    });
-
-    // Обработка хода
-    // socket.on('move', ({gameId, move}) => {
-    //     // Логика обновления состояния игры с использованием chess.js
-    //     if (games[gameId]) {
-    //         const game = games[gameId].game; // Получаем объект игры
-    //
-    //         // Попытка сделать ход с использованием chess.js
-    //         const chessMove = game.move(move); // Попытка выполнить ход
-    //
-    //         if (chessMove === null) {
-    //             console.log('Некорректный ход');
-    //             return;
-    //         }
-    //
-    //         // Если ход успешен, отправляем новое состояние доски (в формате FEN) всем игрокам
-    //         io.to(gameId).emit('updateBoard', game.fen());
-    //     }
-    // });
-    // socket.on('move', ({gameId, move}) => {
-    //     const game = games[gameId].game; // Получаем объект игры для этой игры
-    //
-    //     const chessMove = game.move(move); // Попытка выполнить ход
-    //
-    //     if (chessMove === null) {
-    //         console.log('Некорректный ход');
-    //         return;
-    //     }
-    //
-    //     // Отправка обновленного состояния доски всем игрокам
-    //     io.to(gameId).emit('updateBoard', game.fen());
-    // });
-    socket.on('move', ({gameId, move}) => {
-        const game = games[gameId];
-        if (game) {
-            // Обновляем состояние игры
-            const chessMove = game.game.move(move);
-            if (chessMove === null) {
-                console.log('Ошибка: Невалидный ход:', move);
-                return; // Если ход невалиден, выходим
-            }
-
-            // Отправляем обновленное состояние игры всем участникам игры
-            io.to(gameId).emit('updateBoard', game.game.fen()); // Отправляем новое состояние игры клиентам
-            console.log('Новое состояние доски отправлено:', game.game.fen());
+        if (currentGame.players.length === 2) {
+            io.to(gameId).emit('gameReady');
         }
     });
 
-    // Обработка обновления состояния доски
-    socket.on('updateBoard', function (fen) {
-        game.load(fen); // Загружаем новое состояние игры
-        board.position(fen); // Обновляем отображение доски
-        updateStatus(); // Обновляем статус игры
+    socket.on('move', async ({gameId, move}) => {
+        const game = games[gameId];
+
+        console.log('Received move:', move);
+        if (game) {
+            try {
+                const chessMove = game.game.move({
+                    from: move.from,
+                    to: move.to,
+                    promotion: move.promotion || 'q',
+                });
+
+                if (chessMove === null) {
+                    console.log('Ошибка: Невалидный ход:', move);
+                    return;
+                }
+
+                const boardState = game.game.fen();
+                await saveGameState(game.gameCode, boardState, gameId);
+
+                // Отправляем новое состояние доски всем игрокам в комнате
+                io.to(gameId).emit('updateBoard', game.game.fen());
+                io.to(gameId).emit('updateHistory', game.game.history());
+
+                console.log('Новое состояние доски отправлено:', game.game.fen());
+            } catch (error) {
+                console.error('Ошибка при выполнении хода:', error);
+            }
+        }
     });
 
     // Обработка отключения игрока
     socket.on('disconnect', () => {
         console.log('Игрок отключен:', socket.id);
-        // Удаление игрока из игры
         Object.keys(games).forEach(gameId => {
             const game = games[gameId];
             if (game.players.includes(socket.id)) {
@@ -133,8 +206,15 @@ io.on('connection', (socket) => {
     });
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
+// Синхронизация базы данных и запуск сервера
+(async () => {
+    try {
+        await sequelize.sync();
+        console.log('База данных синхронизирована.');
+        server.listen(PORT, () => {
+            console.log(`Сервер запущен на порту ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Ошибка при запуске приложения:', error);
+    }
+})();
