@@ -1,23 +1,22 @@
-/* Общие стили */
-body {
+html, body {
     font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
+    width: 100vw;
+    overflow: hidden;
     background-color: #f9f9f9;
     margin: 0;
 }
 
-/* Заголовок */
 h1 {
     font-size: 36px;
     color: #333;
     margin-bottom: 20px;
 }
 
-/* Кнопки */
 button {
     padding: 10px 20px;
     font-size: 18px;
@@ -28,13 +27,19 @@ button {
     color: white;
     cursor: pointer;
     transition: background-color 0.3s ease;
+
 }
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    color: #666;
+}
+
 
 button:hover {
     background-color: #0056b3;
 }
 
-/* Кнопка "Очистить доску" */
 #clearBtn {
     background-color: #dc3545;
 }
@@ -43,40 +48,62 @@ button:hover {
     background-color: #c82333;
 }
 
-/* Контейнер с доской */
 #board-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0; /* Убираем внешние отступы */
+    padding: 0;
+
 }
 
-/* Шахматная доска */
 #board {
-    width: 400px;
-    margin-top: 20px;
+    width: 300px;
+
 }
 
 #game-container {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-top: 20px;
-}
-
-/* Контейнер для доски */
-#board-container {
-    display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    transform: translateY(-10%);
+
 }
 
-/* Контейнер для истории ходов */
+#toggle-history-btn {
+    position: absolute;
+    /*top: 10px;*/
+    left: 20%;
+    transform: translateY(-250%);
+    /*width: 80%;*/
+}
+
 #history-container {
-    width: 200px;
-    padding-left: 20px;
-    border-left: 2px solid #ccc;
-    margin-left: 20px;
-    display: none; /* Скрываем историю до старта игры */
+    width: 120%;
+    height: 200px;
+    padding: 0;
+    margin: 0;
+    background-color: white;
+    position: relative; /* Фиксированное положение */
+    top: 0;
+    left: 0;
+    right: 0;
+    display: none; /* Скрыто по умолчанию */
+    z-index: 15;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(-250%); /* Панель скрыта сверху */
+}
+
+#history-container.open {
+    display: block;
+    transform: translateY(0%); /* Панель выезжает сверху и перекрывает доску */
+    width: 80%;
+    height: 200px;
+    padding: 20px;
+    border-radius: 15px;
 }
 
 #move-history {
@@ -96,7 +123,6 @@ button:hover {
     font-weight: bold;
 }
 
-/* Стиль для хода */
 .white-move {
     color: #00aaff;
 }
@@ -110,17 +136,117 @@ button:hover {
     font-weight: normal;
 }
 
-/* Стиль для блока status */
 #status {
     font-family: 'Arial', sans-serif;
     font-size: 18px;
     font-weight: bold;
     padding: 15px;
-    margin-top: 20px;
+
     background-color: #f0f0f0;
     border: 2px solid #ccc;
     border-radius: 8px;
     text-align: center;
     color: #333;
     display: none;
+    transform: translateY(-50%);
 }
+
+#app-container {
+    width: 100vw; /* Полная ширина окна */
+    height: 100vh; /* Полная высота окна */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Убираем ползунок */
+}
+
+#chessboard {
+    width: 100%; /* Использовать всю доступную ширину */
+    height: auto; /* Автоматически подстраивать высоту для сохранения пропорций */
+    max-width: 90vw; /* Ограничение ширины для небольших экранов */
+    max-height: 90vh; /* Ограничение высоты для предотвращения выхода за пределы окна */
+    aspect-ratio: 1 / 1; /* Шахматная доска должна быть квадратной */
+    margin: auto; /* Центровка */
+}
+
+/*@media (max-width: 390px) {*/
+/*    #board-container {*/
+/*        position: relative;*/
+/*        width: 100%;*/
+/*        height: 100%;*/
+/*        margin: 0; !* Убираем внешние отступы *!*/
+/*        padding: 0;*/
+/*    }*/
+
+/*    #board {*/
+/*        width: 300px;*/
+/*    }*/
+
+/*    #game-container {*/
+/*        display: flex;*/
+/*        flex-direction: column;*/
+/*        justify-content: center;*/
+/*        align-items: center;*/
+
+/*    }*/
+
+/*    #toggle-history-btn {*/
+/*        position: absolute;*/
+/*        top: 10px;*/
+/*        left: 50%;*/
+/*        transform: translateX(0%);*/
+/*        z-index: 10; !* Кнопка сверху *!*/
+/*    }*/
+
+/*    #history-container {*/
+/*        width: 100%;*/
+/*        height: 200px;*/
+/*        padding: 0;*/
+/*        margin: 0;*/
+/*        background-color: white;*/
+/*        position: relative; !* Фиксированное положение *!*/
+/*        top: 0;*/
+/*        left: 0;*/
+/*        right: 0;*/
+/*        display: none; !* Скрыто по умолчанию *!*/
+/*        z-index: 15;*/
+/*        box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);*/
+/*        overflow-y: auto;*/
+/*        transition: transform 0.3s ease-in-out;*/
+/*        transform: translateX(-300%); !* Панель скрыта сверху *!*/
+/*    }*/
+
+/*    #history-container.open {*/
+/*        display: block;*/
+/*        transform: translateY(50%); !* Панель выезжает сверху и перекрывает доску *!*/
+/*    }*/
+
+/*    #move-history {*/
+/*        font-family: 'Arial', sans-serif;*/
+/*        font-size: 14px;*/
+/*        line-height: 1.5;*/
+/*        color: #333;*/
+/*        list-style-type: none;*/
+/*        padding: 0;*/
+/*    }*/
+
+/*    #move-history li {*/
+/*        padding: 5px 0;*/
+/*    }*/
+
+/*    #status {*/
+/*        font-family: 'Arial', sans-serif;*/
+/*        font-size: 18px;*/
+/*        font-weight: bold;*/
+/*        padding: 15px;*/
+/*        margin-top: 50px;*/
+/*        background-color: #f0f0f0;*/
+/*        border: 2px solid #ccc;*/
+/*        border-radius: 8px;*/
+/*        text-align: center;*/
+/*        color: #333;*/
+/*        display: none;*/
+/*        transform: translateY(300%);*/
+/*    }*/
+/*}*/
