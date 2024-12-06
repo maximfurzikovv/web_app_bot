@@ -2,38 +2,42 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Игра в шахматы</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="chessboard-1.0.0.js"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
 
     <!-- Подключение стилей -->
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="chessboard-1.0.0.css"/>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chess.css">
+
 </head>
 <body>
 
 <div id="interface">
     <h1>Игра в шахматы</h1>
-    <button id="startBtn">Начать новую игру</button>
+    <button id="startBtn" disabled>Ждем 2 игрока...</button>
 </div>
-<div id="game-container">
-    <!-- Контейнер для доски -->
+
+<div id="history-container" style="display: none;">
+    <h2>История ходов</h2>
+    <ul id="move-history"></ul>
+    <button id="close-history-btn">Закрыть</button>
+</div>
+
+<div id="game-container" style="display: none;">
+
     <div id="board-container">
+        <button id="toggle-history-btn" style="display: none;">История ходов</button>
+        <div id="status"></div>
         <div id="board"></div>
     </div>
 
-    <!-- Контейнер для истории ходов -->
-    <div id="history-container">
-        <h2>История ходов</h2>
-        <ul id="move-history"></ul>
-    </div>
 </div>
-<!-- Подключение локального файла chessboard.js -->
-<script src="chessboard-1.0.0.js"></script>
-<div id="status"></div>
 
-<script src="gameLogic.js" ></script>
+<script src="gameLogic.js"></script>
+
 </body>
 </html>
